@@ -11,14 +11,18 @@ class Pegawai extends CI_Controller
         parent::__construct();
         $this->load->model('Absensi_model');
         $this->load->model('Kampus_model');
+        $this->load->model('Groups_model');
         $this->load->model('Lokasi_model');
         $this->load->model('Users_groups_model');
         $this->load->model('Type_pegawai_model');
         $this->load->model('Absensi_pegawai_model');
+        $this->load->model('aksesinstansi_model');
         $this->load->model('ion_auth_model');
         $this->load->library('form_validation');
         chek_session();
     }
+
+
 
     public function index()
     {
@@ -65,6 +69,170 @@ class Pegawai extends CI_Controller
         echo json_encode($data);
     }
 
+    public function onoffice()
+    {
+        $uid = $this->session->userdata('user_id');
+        $k = $this->ion_auth_model->get_by_id($uid);
+        $row = $this->Kampus_model->get_by_id($k->id_kampus);
+        $tipe = $this->Type_pegawai_model->get_all();
+        $data = array(
+            'button' => 'Submit Absensi',
+            'action' => site_url('pegawai/create_action_onoffice'),
+            'id' => set_value('id'),
+            'id_kampus' => $row->id,
+            'tgl_absensi' => set_value('tgl_absensi'),
+            'jumlah_taruna' => set_value('jumlah_taruna'),
+            'pria_sehat' => set_value('pria_sehat'),
+            'pria_covid' => set_value('pria_covid'),
+            'pria_ijin' => set_value('pria_ijin'),
+            'wanita_sehat' => set_value('wanita_sehat'),
+            'wanita_covid' => set_value('wanita_covid'),
+            'wanita_ijin' => set_value('wanita_ijin'),
+            'vaksin1' => set_value('vaksin1'),
+            'vaksin2' => set_value('vaksin2'),
+            'vaksin_lain' => set_value('vaksin_lain'),
+            'uid' => $uid,
+            'pic' => $row->kampus,
+        );
+        $data['lokasi_data'] = $this->aksesinstansi_model->get_tab_lokasi_kampus();
+        $data['tipe'] = $tipe;
+        // var_dump($data);
+        // die();
+        $this->template->display('aksesinstansi/onoffice/form_onoffice', $data);
+    }
+
+    public function create_action_onoffice()
+    {
+        $uid = $this->session->userdata('user_id');
+        $k = $this->ion_auth_model->get_by_id($uid);
+        $row = $this->Kampus_model->get_by_id($k->id_kampus);
+
+        $this->form_validation->set_rules('jumlah_pegawai', 'Jumlah Pegawai', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('sehat', 'Jumlah Pegawai Sehat', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('covid', 'Jumlah Pegawai Terpapar Covid', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('ijin', 'Jumlah Pegawai Ijin', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('wfo', 'Jumlah Pegawai WFO', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('wfh', 'Jumlah Pegawai WFH', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('dinas_luar', 'Jumlah Pegawai Dinas Luar', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('tugas_belajar', 'Jumlah Pegawai Tugas Belajar', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('cuti', 'Jumlah Pegawai Cuti', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('isoman', 'Jumlah Pegawai Isoman', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('vaksin1', 'Jumlah Sudah Vaksin 1', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('vaksin2', 'Jumlah Sudah Vaksin 2', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('vaksin_luar', 'Jumlah Sudah Vaksin Lainnya', 'required|regex_match[/^[0-9\-\+]+$/]');
+        if ($this->form_validation->run() == FALSE) {
+            $this->create();
+        } else {
+            $uid = $this->session->userdata('user_id');
+            $data = array(
+                'tgl_absensi' => $this->input->post('tgl_absensi', TRUE),
+                'jumlah_taruna' => $this->input->post('jumlah_taruna', TRUE),
+                'pria_sehat' => $this->input->post('pria_sehat', TRUE),
+                'pria_covid' => $this->input->post('pria_covid', TRUE),
+                'pria_ijin' => $this->input->post('pria_ijin', TRUE),
+                'wanita_sehat' => $this->input->post('wanita_sehat', TRUE),
+                'wanita_covid' => $this->input->post('wanita_covid', TRUE),
+                'wanita_ijin' => $this->input->post('wanita_ijin', TRUE),
+                'id_kampus' => $this->input->post('id_kampus', TRUE),
+                'id_lokasi' => $this->input->post('id_lokasi', TRUE),
+                //'id' => $this->input->post('id', TRUE),
+                'uid' => $uid,
+            );
+            // cek, kl absensi di tgl tsb sudah ada, di update. Jika belum, ditambah
+            $cek = $this->Absensi_model->get_by_tgl(
+                $this->input->post('tgl_absensi'),
+                $this->input->post('id_kampus'),
+                $this->input->post('id_lokasi')
+            ); //print_r($cek);die();
+            foreach ($cek as $c) {
+                $data['id'] = $c->id;
+                $id = $c->id;
+            }
+            if ($cek) {
+                $this->Absensi_model->update_absensi(
+                    $id,
+                    $this->input->post('id_lokasi'),
+                    $this->input->post('id_kampus'),
+                    $uid,
+                    $data
+                );
+            } else {
+                $this->Absensi_model->insert($data);
+            }
+            $this->session->set_flashdata('message', 'Create Record Success');
+            redirect(site_url('pegawai/onoffice'));
+        }
+    }
+
+    function action_absensi_pegawai()
+    {
+        $this->form_validation->set_rules('jumlah_pegawai', 'Jumlah Pegawai', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('id_pegawai_type', 'Tipe Pegawai', 'required|regex_match[/^[0-9\-\+]+$/]');
+        //$this->form_validation->set_rules('tgl_absensi', 'Tgl. Absensi', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('sehat', 'Pegawai Sehat', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('covid', 'Pegawai Terpapar', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('ijin', 'Pegawai Sakit/Ijin, dan lainnya', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('wfo', 'Pegawai WFO', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('wfh', 'Pegawai WFH', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('dinas_luar', 'Pegawai Dinas Luar', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('tugas_belajar', 'Pegawai Tugas Belajar', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('cuti', 'Pegawai Cuti', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('isoman', 'Pegawai Isoman', 'required|regex_match[/^[0-9\-\+]+$/]');
+        $this->form_validation->set_rules('dirawat', 'Pegawai Dirawat', 'required|regex_match[/^[0-9\-\+]+$/]');
+        if ($this->form_validation->run() == FALSE) {
+            $response = array(
+                'code' => 0,
+                'message' => array(
+                    'jumlah_pegawai' => form_error('jumlah_pegawai'),
+                    'id_pegawai_type' => form_error('id_pegawai_type'),
+                    'id_kampus' => form_error('id_kampus'),
+                    'sehat' => form_error('sehat'),
+                    'covid' => form_error('covid'),
+                    'ijin' => form_error('ijin'),
+                    'wfo' => form_error('wfo'),
+                    'wfh' => form_error('wfh'),
+                    'dinas_luar' => form_error('dinas_luar'),
+                    'tugas_belajar' => form_error('tugas_belajar'),
+                    'cuti' => form_error('cuti'),
+                    'isoman' => form_error('isoman'),
+                    'dirawat' => form_error('dirawat'),
+                    'vaksin1' => form_error('vaksin1'),
+                    'vaksin2' => form_error('vaksin2'),
+                    'vaksin_lain' => form_error('vaksin_lain'),
+                )
+            );
+        } else {
+            $uid = $this->session->userdata('user_id');
+            $data = array(
+                'tgl_absensi' => $this->input->post('tgl_absensi', TRUE),
+                'jumlah_pegawai' => $this->input->post('jumlah_pegawai', TRUE),
+                'id_pegawai_type' => $this->input->post('id_pegawai_type', TRUE),
+                'id_kampus' => $this->input->post('id_kampus', TRUE),
+                'sehat' => $this->input->post('sehat', TRUE),
+                'covid' => $this->input->post('covid', TRUE),
+                'ijin' => $this->input->post('ijin', TRUE),
+                'wfo' => $this->input->post('wfo', TRUE),
+                'wfh' => $this->input->post('wfh', TRUE),
+                'dinas_luar' => $this->input->post('dinas_luar', TRUE),
+                'tugas_belajar' => $this->input->post('tugas_belajar', TRUE),
+                'cuti' => $this->input->post('cuti', TRUE),
+                'isoman' => $this->input->post('isoman', TRUE),
+                'dirawat' => $this->input->post('dirawat', TRUE),
+                'vaksin1' => $this->input->post('vaksin1', TRUE),
+                'vaksin2' => $this->input->post('vaksin2', TRUE),
+                'vaksin_lain' => $this->input->post('vaksin_lain', TRUE),
+                'uid' => $uid,
+            );
+
+            $this->Absensi_pegawai_model->insert($data);
+            $response = array(
+                'code' => 1,
+                'message' => 'Data Absen berhasil disimpan'
+            );
+        }
+
+        echo json_encode($response);
+    }
     public function create()
     {
         $uid = $this->session->userdata('user_id');
