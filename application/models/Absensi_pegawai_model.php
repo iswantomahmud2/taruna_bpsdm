@@ -44,6 +44,89 @@ class Absensi_pegawai_model extends CI_Model
         //)->result();
     }
 
+    function get_list_absensi_pegawai_admin()
+    {
+        $start  = $this->input->post('start');
+        $length = $this->input->post('length');
+        $draw   = $this->input->post('draw');
+        $page   = $this->input->post('page', true);
+        $date   = $this->input->post('date', true);
+        // $search = strtolower(trim($verified_data['search']));
+        // var_dump($date);
+        // die();
+        $sort   = $this->input->post('sort', true);
+        $order  = $this->input->post('order', true);
+        // $uid  = $this->input->post('uid', true);
+        $order_column = $order[0]['column'];
+        $order_dir = strtoupper($order[0]['dir']);
+
+        $exact  = $this->input->post('exact', true);
+
+        $columns = array(
+            0 => 'tgl_absensi',
+            1 => 'tgl_absensi',
+            2 => 'tgl_absensi',
+        );
+
+        $offset = ($page - 1) * $start;
+
+        $where = " WHERE t.tgl_absensi='$date'";
+
+        if (!empty($date)) {
+            $where;
+        }
+
+
+        $sql = "SELECT t.*, m.tipe, k.kampus
+            FROM trx_absensi_pegawai t
+            JOIN mst_pegawai_type m ON t.id_pegawai_type = m.id JOIN mst_kampus k ON t.id_kampus = k.id $where";
+
+        $query = $this->db->query($sql);
+
+        $records_total = $query->num_rows();
+
+        $sql .= " ORDER BY " . $columns[$order_column] . " {$order_dir}";
+
+        if ($start != -1) {
+            $sql .= " LIMIT {$length} OFFSET {$offset}";
+        }
+
+        $query     = $this->db->query($sql);
+        $rows_data = $query->result();
+
+        $rows = array();
+        $i = ($offset + 1);
+        foreach ($rows_data as $row) {
+            $no = $row->number = $i;
+
+            $rows[] = array(
+                "id" => $row->id,
+                "number" => $no,
+                "tgl_absensi" => tgl_indo($row->tgl_absensi),
+                "kampus" => $row->kampus,
+                "tipe" => $row->tipe,
+                "jumlah_pegawai" => $row->jumlah_pegawai,
+                "sehat" => $row->sehat,
+                "covid" => $row->covid,
+                "ijin" => $row->ijin,
+                "wfo" => $row->wfo,
+                "wfh" => $row->wfh,
+                "dinas_luar" => $row->dinas_luar,
+                "cuti" => $row->cuti,
+                "isoman" => $row->isoman,
+                "dirawat" => $row->dirawat,
+            );
+
+            $i++;
+        }
+
+        return array(
+            'draw'           => $draw,
+            'recordsTotal'   => $records_total,
+            'recordsFiltered' => $records_total,
+            'data'           => $rows,
+        );
+    }
     function get_list_absensi_pegawai($uid)
     {
         $start  = $this->input->post('start');

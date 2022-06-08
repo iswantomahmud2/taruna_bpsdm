@@ -33,12 +33,15 @@ class Pegawai extends CI_Controller
         // cari users group
         $users = $this->Users_groups_model->get_users_id($uid);
         // cek apakah administrator (group_id = 1)
+        // var_dump($users->group_id);
+        // die();
         if ($users->group_id == 1) {
             $data = array(
                 'uid' => $uid,
                 'pic' => '',
-                'pegawai_data' => $this->Absensi_pegawai_model->get_all(),
+
             );
+            $this->template->display('pegawai/trx_pegawai_list_admin', $data);
         } else {
             $row = $this->Kampus_model->get_by_id($k->id_kampus);
             $data = array(
@@ -46,8 +49,15 @@ class Pegawai extends CI_Controller
                 'pic' => $row->kampus,
                 'pegawai_data' => $this->Absensi_pegawai_model->get_all_by_pegawai($uid),
             );
+            $this->template->display('pegawai/trx_pegawai_list', $data);
         }
-        $this->template->display('pegawai/trx_pegawai_list', $data);
+    }
+    function get_list_absensi_pegawai_admin()
+    {
+        $uid = $this->session->userdata('user_id');
+        // $date   = $this->input->post('date', true);
+        $data = $this->Absensi_pegawai_model->get_list_absensi_pegawai_admin();
+        echo json_encode($data);
     }
     function get_list_absensi_pegawai()
     {
