@@ -1,14 +1,11 @@
-<script src="<?php echo base_url('assets/js/jquery-1.12.0.min.js') ?>"></script>
-<script src="<?php echo base_url('assets/datatables/jquery.dataTables.js') ?>"></script>
-<script src="<?php echo base_url('assets/datatables/dataTables.bootstrap.js') ?>"></script>
 <section class='content-header'>
     <h1>
-        ABSENSI PEGAWAI PER INSTANSI
+        ABSENSI SEMUA INSTANSI
         <small>Daftar absensi</small>
     </h1>
     <ol class='breadcrumb'>
-        <li><a href='#'><i class='fa fa-suitcase'></i>Reporting</a></li>
-        <li class='active'>Daftar Absensi Pegawai</li>
+        <li><a href='#'><i class='fa fa-suitcase'></i>Transaksi</a></li>
+        <li class='active'>Daftar Absensi</li>
     </ol>
 </section>
 <section class='content'>
@@ -18,13 +15,10 @@
                 <div class="box-body">
                     <div class='box-header with-border'>
                         <h3 class='box-title'>
-                            <?php //echo anchor('pegawai/create/', '<i class="glyphicon glyphicon-plus"></i>Tambah Data', array('class' => 'btn btn-primary btn-sm')); 
-                            ?>
+                            <!--<input type="submit" name="submit" class="btn btn-primary btn-sm" id="submit_btn" value="Excel" />-->
                             <button class="btn btn-primary btn-sm btn-download"><i class="fa fa-file-excel-o"></i> Excel</button>
                         </h3>
                     </div><!-- /.box-header -->
-
-
                     <div class="col-md-3">
                         <div class="form-group" id="tgl_absensi">
                             <label>Tanggal Absensi</label>
@@ -32,19 +26,38 @@
                         </div>
                     </div>
                 </div>
+                <div class='box-body table-responsive'>
+                    <table class="table table-bordered table-striped" id="mytablekampusAdmin">
+                        <thead>
+                            <tr>
+                                <th width="80px">No</th>
+                                <th>Nama Instansi</th>
+                                <th>Lokasi</th>
+                                <th>Tgl. Absensi</th>
+                                <th>Total Taruna Pria</th>
+                                <th>Total Taruna Wanita</th>
+                                <th>Taruna Pria Sehat</th>
+                                <th>Taruna Pria Terpapar</th>
+                                <th>Taruna Pria Sakit/Ijin</th>
+                                <th>Taruna Wanita Sehat</th>
+                                <th>Taruna Wanita Terpapar</th>
+                                <th>Taruna Wanita Sakit/Ijin</th>
+                            </tr>
+                        </thead>
 
-                <div class='box-body'>
-                    <?php $this->load->view('pegawai/tbl_pegawai_admin') ?>
+                    </table>
                 </div><!-- /.box-body -->
             </div><!-- /.box -->
         </div><!-- /.col -->
     </div><!-- /.row -->
 </section><!-- /.content -->
-
+<script src="<?php echo base_url('assets/js/jquery-1.11.2.min.js') ?>"></script>
+<script src="<?php echo base_url('assets/datatables/jquery.dataTables.js') ?>"></script>
+<script src="<?php echo base_url('assets/datatables/dataTables.bootstrap.js') ?>"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         var base_url = '<?php echo base_url() ?>';
-        var table_kantor = $("#tablepegawai");
+        var table_kantor = $("#mytablekampusAdmin");
         var aksesUser = 'aksesUser';
         // $("#mytable").dataTable();
 
@@ -56,10 +69,11 @@
             autoclose: 1,
         });
 
+
         $(".btn-download").click(function(event) {
             var url = "";
-            url += `<?php echo site_url('pegawai/excel') ?>`;
-            url += `?date1=${$('.date1').val()}`;
+            url += `<?php echo site_url('transaksi/excel') ?>`;
+            url += `?date=${$('.date').val()}`;
 
             console.log('download', url);
 
@@ -68,7 +82,7 @@
         var dd = $('.date1').val();
 
 
-        var tabelPegawai = {
+        var tabelKampusAdmin = {
             loadData: function() {
                 console.log('data' + dd);
 
@@ -78,7 +92,7 @@
                     // responsive: true,
                     scrollX: true,
                     ajax: {
-                        url: base_url + 'pegawai/get_list_absensi_pegawai_admin',
+                        url: base_url + 'pegawai/get_list_absensi_kampus_admin',
 
                         method: 'POST',
                         data: function(d) {
@@ -106,74 +120,64 @@
                             width: '15px'
                         },
                         {
-                            data: 'tgl_absensi',
-                            orderable: false,
-                            className: 'text-left',
-                            render: function(data, type, row, meta) {
-                                return data;
-                            },
-
-                        },
-                        {
                             data: 'kampus',
                             orderable: false,
                             className: 'text-left',
 
                         },
                         {
-                            data: 'tipe',
+                            data: 'lokasi',
                             orderable: false,
                             className: 'text-left',
 
                         },
+                        {
+                            data: 'tgl_absensi',
+                            orderable: false,
+                            className: 'text-left',
+
+
+                        },
+
+
 
                         {
-                            data: 'jumlah_pegawai',
+                            data: 'jumlah_taruna',
                             orderable: false,
                             className: 'text-left',
                         },
                         {
-                            data: 'sehat',
+                            data: 'jumlah_taruna_wanita',
                             orderable: false,
                             className: 'text-left',
                         },
                         {
-                            data: 'covid',
+                            data: 'pria_sehat',
                             orderable: false,
                             className: 'text-left',
                         },
                         {
-                            data: 'ijin',
+                            data: 'pria_covid',
                             orderable: false,
                             className: 'text-left',
                         },
                         {
-                            data: 'wfo',
+                            data: 'pria_ijin',
                             orderable: false,
                             className: 'text-left',
                         },
                         {
-                            data: 'wfh',
+                            data: 'wanita_sehat',
                             orderable: false,
                             className: 'text-left',
                         },
                         {
-                            data: 'dinas_luar',
+                            data: 'wanita_covid',
                             orderable: false,
                             className: 'text-left',
                         },
                         {
-                            data: 'cuti',
-                            orderable: false,
-                            className: 'text-left',
-                        },
-                        {
-                            data: 'isoman',
-                            orderable: false,
-                            className: 'text-left',
-                        },
-                        {
-                            data: 'dirawat',
+                            data: 'wanita_ijin',
                             orderable: false,
                             className: 'text-left',
                         },
@@ -205,7 +209,7 @@
                 if (!jQuery().DataTable) {
                     return;
                 }
-                let check = $.fn.dataTable.isDataTable('#tablepegawai');
+                let check = $.fn.dataTable.isDataTable('#mytablekampusAdmin');
 
                 if (check) {
                     this.reload();
@@ -220,13 +224,25 @@
             if (localStorage.getItem(aksesUser)) {
                 var data = localStorage.getItem(aksesUser);
 
-                tabelPegawai.init();
+                tabelKampusAdmin.init();
 
             }
         });
 
 
-        tabelPegawai.init();
+        tabelKampusAdmin.init();
 
     });
+
+
+
+    // $(".btn-download").click(function(event) {
+    //     var url = "";
+    //     url += `<?php echo site_url('transaksi/excel') ?>`;
+    //     url += `?date=${$('.date').val()}`;
+
+    //     console.log('download', url);
+
+    //     window.location.href = url;
+    // });
 </script>

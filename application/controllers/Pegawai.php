@@ -52,11 +52,18 @@ class Pegawai extends CI_Controller
             $this->template->display('pegawai/trx_pegawai_list', $data);
         }
     }
+    function get_list_absensi_kampus_admin()
+    {
+        $uid = $this->session->userdata('user_id');
+        // $date   = $this->input->post('date', true);
+        $data = $this->Absensi_pegawai_model->get_list_absensi_kampus_admin();
+        echo json_encode($data);
+    }
     function get_list_absensi_pegawai_admin()
     {
         $uid = $this->session->userdata('user_id');
         // $date   = $this->input->post('date', true);
-        $data = $this->Absensi_pegawai_model->get_list_absensi_pegawai_admin();
+        $data = $this->Absensi_pegawai_model->get_list_absensi_pegawai_admin($uid);
         echo json_encode($data);
     }
     function get_list_absensi_pegawai()

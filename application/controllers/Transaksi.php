@@ -36,7 +36,7 @@ class Transaksi extends CI_Controller
                 'pic' => '',
                 'absensi_data' => $this->Absensi_model->get_all_kampus(),
             );
-            $this->template->display('transaksi/trx_absensi_kampus', $data);
+            $this->template->display('transaksi/trx_absensi_kampus_admin', $data);
         } else {
             $row = $this->Kampus_model->get_by_id($k->id_kampus);
             $data = array(
@@ -48,6 +48,13 @@ class Transaksi extends CI_Controller
             // die();
             $this->template->display('aksesinstansi/absensi/list', $data);
         }
+    }
+    function get_list_absensi_kampus_admin()
+    {
+        $uid = $this->session->userdata('user_id');
+        // $date   = $this->input->post('date', true);
+        $data = $this->Absensi_pegawai_model->get_list_absensi_kampus_admin();
+        echo json_encode($data);
     }
 
     public function create()
